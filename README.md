@@ -2,8 +2,7 @@
 
 Original owner @thanosdrome
 
-![alt text](image.png)
-
+![Architecture](assets/architecture.png)
 
 ***Welcome to this step-by-step guide on deploying an EKS cluster and application with complete CI/CD!***
 
