@@ -1,14 +1,15 @@
-
 #!/bin/bash
 
+# Ref - https://www.jenkins.io/doc/book/installing/linux/
+# Installing jenkins
 sudo yum install wget -y
 sudo wget -O /etc/yum.repos.d/jenkins.repo \
-    https://pkg.jenkins.io/redhat-stable/jenkins.repo
-sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
-sudo yum upgrade
+    https://pkg.jenkins.io/redhat/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io-2023.key
+sudo yum upgrade -y
 # Add required dependencies for the jenkins package
-sudo yum install fontconfig java-17-openjdk
-sudo yum install jenkins
+sudo yum install java-17-amazon-corretto-devel -y
+sudo yum install jenkins -y
 sudo systemctl daemon-reload
 
 # Starting Jenkins
@@ -56,8 +57,8 @@ sudo yum -y install terraform
 
 # Ref - https://pwittrock.github.io/docs/tasks/tools/install-kubectl/
 # Installing kubectl
-curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.7.0/bin/linux/amd64/kubectl
-chmod +x ./kubectl
+sudo curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.23.6/bin/linux/amd64/kubectl
+sudo chmod +x ./kubectl
 sudo mkdir -p $HOME/bin && sudo cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
 
 # Installing Trivy

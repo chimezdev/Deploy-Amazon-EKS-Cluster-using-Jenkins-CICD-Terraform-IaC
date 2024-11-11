@@ -77,7 +77,7 @@ The first thing we have to do is to create a new key pair for login into the EC2
 
 So, in the AWS management console go to "`EC2`" and select "`Key pairs`" in the listed overview of your resources, and then select "Create key pair" at the top right corner. You need to download these key pairs so that you can use them later for logging into the `EC2 instance`.
 
-![None](https://miro.medium.com/v2/resize:fit:700/1*G_JL4rM6CV9UrmtwTH1mAg.png)
+![None](/assets/keypair.JPG)
 
 Create Key pairs for the EC2 instance
 
@@ -97,7 +97,7 @@ data "terraform_remote_state" "aws-cicd" {
 You will see how we will make use of any resources from the state file when needed.
 
 
-![None](https://miro.medium.com/v2/resize:fit:700/1*RFzgg8x0MEG9AmlTUH1LQw.png)
+![None](./assets/state_bucket.JPG)
 
 Create an S3 bucket to store terraform remote state
 
@@ -139,3 +139,17 @@ See the file ***jenkins-server/tf-aws-ec2/main.tf***
 We'll be using publicly available modules for creating different services instead of resources
 [None]https://registry.terraform.io/browse/modules?provider=aws
 
+> *install\_build\_tools.sh*
+- see the file **scripts/install_build_tools.sh**
+
+Points to note before running `terraform apply`.
+
+* Use the correct key pair name in the EC2 instance module `(main.tf)` and it must exist before creating the instance.
+
+* Use the correct bucket name in the configuration for the `remote` backend `S3` in the`backend.tf`
+
+* You need to use `user_data = file("scripts/install_build_tools.sh")` depending on your root module in the EC2 module to specify the script to be executed after EC2 instance creation.
+
+* Make sure the script ***install_build_tools.sh*** is executable. Run `chmod +x install_build_tools.sh`
+
+Let's run `terraform apply` and create this. Please make sure to run `terraform init` if you are doing this for the first time. Also, double-check your current working directory where you are running the `terraform cli` commands.
