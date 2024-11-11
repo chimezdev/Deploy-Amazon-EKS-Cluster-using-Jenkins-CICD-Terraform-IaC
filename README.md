@@ -153,3 +153,77 @@ Points to note before running `terraform apply`.
 * Make sure the script ***install_build_tools.sh*** is executable. Run `chmod +x install_build_tools.sh`
 
 Let's run `terraform apply` and create this. Please make sure to run `terraform init` if you are doing this for the first time. Also, double-check your current working directory where you are running the `terraform cli` commands.
+
+terraform apply
+
+![None](./assets/terra_apply.JPG)
+
+terraform apply
+
+Give it some time before you go to the AWS `EC2 console` and check the instance status. Even though the instance is running, it may still be installing the tools.
+
+![None](./assets/jenkins_server.JPG)
+
+Jenkins Build Server Created
+
+Now, let's log in to the Jenkins server and verify if all the tools have been installed correctly or not.
+
+So, let's select the `EC2 instance` and click on connect. You can simply connect using the **EC2 Instance connect**
+
+![None](./assets/ssh-connect.JPG)
+
+successfully connected to the EC2 instance
+
+We can now verify the versions of all the tools installed. Let's copy and paste the below commands.
+
+```yaml
+jenkins --version
+docker --version
+docker ps
+terraform --version
+kubectl version
+aws --version
+trivy --version
+helm version
+```
+
+Here is the output.
+
+![None](./assets/connect.JPG)
+
+Tools version installed in the Jenkins Server (EC2 instance)
+
+Let's configure the Jenkins in the `EC2 instance`. So, copy the EC2 instance's `public IP address` and paste it into the browser by adding the `8080` port which we have provided in the security group settings for Jenkins.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*Bt6OahGi8b2IAFlGwCVFWg.png)
+
+Now, copy the administrator password from the below path and paste and continue.
+
+![None](./assets/jenkins_pass.JPG)
+
+Copy the Admin password
+
+You will get the below screen. Click on `Install Suggested Plugins`**.**
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*vnCFQYNgDPJJLglYwnLzNg.png)
+
+Install Suggested Plugin
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*RfhmnX1hkFU9xbAPujUFDQ.png)
+
+Plugin Installing
+
+Once all the plugins are installed, you will be presented with the following screen. Here, you can continue as an admin (click on `skip and continue as admin`) **or** create a new user and password then click `Save and Continue`.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*Z-7qzQUX6bnhmDNDR6hiiQ.png)
+
+Create First Admin User
+Click on `Save and Finish` and then on the next page `Start using Jenkins.`
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*Uo3DOsOqggAgKN0zMy-88Q.png)
+
+Finally, you will get the below **Jenkins Dashboard**. At this point, we are ready with our Jenkins server. We'll configure the pipeline later.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*Zz-Y3-aeoU68uJloXESBDA.png)
+
+Jenkins Dashboard
