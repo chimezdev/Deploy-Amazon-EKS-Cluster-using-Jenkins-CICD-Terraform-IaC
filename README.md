@@ -317,3 +317,203 @@ Install Plugin — Pipeline: Stage View
 Finally, let's start configuring our pipeline. Go to your `Dashboard` and click on `Configure` →
 
 ![None](https://miro.medium.com/v2/resize:fit:700/1*FPtHRKzBkUsX4GfsgUNJ9A.png)
+Configure Pipeline
+
+Now move to the bottom and start typing pipeline script using `stages` and `tasks`. You can also take help from `Pipeline Syntax` —
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*5ACTAU6ObbGjgPzSwhYTsg.png)
+
+However, I have included the pipeline code in Jenkinsfile as below. Let's observe a few things here —
+
+* We need to provide AWS credential variables that we added already in Jenkins.
+
+* We need to provide `Github` location for the code with the current branch. Since this repository is public, we don't have to specify the `GitHub` `token` or `credentials` to access git.
+
+> *Jenkinsfile*
+See **Jenkinsfile** in this repository to see the complete pipeline script
+We have also added parameters and condition.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*zMb3pq3XWjXgezvAqRZLgQ.png)
+Adding parameter
+
+Copy the code into pipeline editor, Save and run the pipeline by clicking on `Build with Parameters` —
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*QC9TpFvH4iiN-VjV1g7BDg.png)
+
+Build with Parameters
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*lZMJ4aqDvjoUUe3FPvzCOQ.png)
+
+Pipeline running
+
+We need to wait at least 15 mins for the pipeline to be finished.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*h7_BGs_-V4Nl6XE-77KkOw.png)
+
+Pipeline Success
+
+Let's verify the EKS cluster in the AWS Console.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*2CSkbFUD-BBDPhgFexNgKQ.png)
+
+EKS Cluster — Created
+
+
+Check the logs by clicking on `#4` and then `console output`. We can see that the pipeline is successful and `terraform plan` got executed by showing `58 resources to add.`
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*CCB_3dDoah1MoGiu0nVlIA.png)
+
+Console Output
+
+## **Stage 4: Adding Kubernetes manifest files for the Nginx Application**
+
+We have come to the last stage where we are going to **deploy** a simple Kubernetes application to the cluster. Ideally, in a production scenario, there will be different pipelines for the infrastructure (EKS Cluster) and the application, and again if the application is 2-tier or 3-tier, there will be separate pipelines for each tier to maintain microservices architecture.
+
+We are going to create a simple Nginx application that we are going to access via the `LoadBalancer` endpoint. Hence, let's create 2 manifest files — `deployment.yaml` and `service.yaml` put in the directory ***/manifest***
+
+> *deployment.yaml*
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+```
+
+> *service.yaml*
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: LoadBalancer
+```
+
+Also add another stage in the Jenkins pipeline to apply manifest files using `kubectl` utility that we installed in the EC2 instance (Jenkins Server) initially.
+
+> *Jenkinsfile*
+
+```yaml
+stage('Deploying Nginx Application') {
+    when {
+        expression { params.action == 'apply' }  // Run only if 'apply' is selected
+    }
+    steps {
+        script{
+            dir('manifest') {
+                sh 'aws eks update-kubeconfig --name palm-eks-cluster'
+                sh '''
+                if ! kubectl get namespace eks-nginx-app > /dev/null 2>&1; then
+                    kubectl create namespace eks-nginx-app
+                else
+                    echo "Namespace eks-nginx-app already exists."
+                fi
+                '''
+                sh 'kubectl apply -f deployment.yaml -n eks-nginx-app'
+                sh 'kubectl apply -f service.yaml -n eks-nginx-app'
+            }
+        }
+    }
+}
+```
+If you have included the above in the initial run, then just proceed to the next step
+
+Create an access entry.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*Nvb-_eo083g0ofmJHE5hWg.png)
+
+EKS Cluster — Create access entry
+
+Now, select the admin/root user or assumed role ARN.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*AbXMy9LEOK-fV3yyqyD5Eg.png)
+
+EKS Cluster — Select IAM principal ARN
+
+Next, select the policy/permission. Please select `AmazonEKSClusterAdminPolicy` then click `Next` and `Create`.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*E3JyOnu5S1KeZrwv93S7dA.png)
+
+Select permission — AmazonEKSClusterAdminPolicy
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*HYanUZFYT49qUj74g5S9aA.png)
+
+Access Entry created
+
+Let's rerun the pipeline and check the status. This time our pipeline will be successful.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*sidSsXZA5Dimkt3Y7h3Q7w.png)
+
+eks-cicd-pipeline successful
+
+Let's validate the resources in the AWS EKS console -
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*GeOW0hRgPV4_UzfzBdx8ug.png)
+
+nginx deployment is running
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*Nme3g6oi-BXvnPzIoWyXlg.png)
+
+nginx service is running
+
+Now copy the load balancer URL and hit it in the browser. We'll be able to access the application.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*77SNLMebV0ZKie_B5kbDjA.png)
+
+Nginx application is running in the browser
+
+## **Stage 5: Teardown resources**
+
+Finally, we have come to the end of this guide. We have to destroy our resources to save on the cost. Deleting applications and destroying `EKS` cluster can be done via the Jenkins pipeline by just selecting the `action` `destroy` while doing `Build with Parameters`.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*tfHYn5CDEMHBtZu0GAKt5w.png)
+
+Action — destroy
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*4g2-XjFXG64-3DlyahHh7w.png)
+
+Destroy Pipeline
+
+EKS Cluster — Deleted
+
+Let's also delete the `Jenkins` `Server` by running `terraform destroy` via local CLI.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*PuiabpzGbA3LVqBAIk_f_g.png)
+
+terraform destroy
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*o9-geEAOtcv0YzfZ_4KJKg.png)
+
+terraform destroy completed
+
+Please recheck your AWS Console manually to see if there is any resource remaining for example — EC2 key pair and S3 bucket and delete them manually.
+
+## **Conclusion**
+
+We have successfully implemented a robust and automated infrastructure provisioning and deployment pipeline using `Terraform`, `EKS`, and `Jenkins`. We have not only designed and implemented a scalable and efficient CI/CD pipeline but also deployed a simple **Nginx** application in the EKS cluster. However, this is not the end but the beginning of creating complex production CI/CD applications.
