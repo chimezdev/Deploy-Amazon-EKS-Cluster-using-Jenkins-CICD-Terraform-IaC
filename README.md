@@ -227,3 +227,93 @@ Finally, you will get the below **Jenkins Dashboard**. At this point, we are rea
 ![None](https://miro.medium.com/v2/resize:fit:700/1*Zz-Y3-aeoU68uJloXESBDA.png)
 
 Jenkins Dashboard
+
+## **Stage 2: Create Terraform configuration files for creating the EKS Cluster**
+
+### **Task 1: Create Terraform configuration files**
+
+Moving on, let's start writing terraform configurations for the `EKS` `cluster` in a `private` `subnet`.
+
+We'll use the same bucket but a different key/folder for the`terraform remote state` file.
+
+> *backend.tf*
+See **tf-aws-eks**
+
+### **Task 2: Validate the terraform configuration files**
+
+Although we are going to create the AWS EKS infrastructure via the Jenkins pipeline, we first need to validate the configuration files that we have created in the previous step.
+
+So, let's move to `tf-aws-eks` directory, initialize our working directory, and then run `terraform plan` and `validate`.
+
+```yaml
+terraform init
+```
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*a_O63x-NhkNGxAZN6r2ZfA.png)
+
+
+```yaml
+terraform validate
+```
+
+![None](./assets/validate.JPG)
+
+terraform validate
+
+```yaml
+terraform plan 
+```
+
+![None](./assets/plan.JPG)
+
+terraform plan
+
+Configuration files are all validated and `terraform plan` is running fine which means we are ready to run the `terraform apply` in the Jenkins pipeline.
+
+## **Stage 3: Configure Jenkins pipeline**
+
+Let's proceed to the Jenkins URL again and start configuring the pipeline.
+
+Click on "**Create a Job**", type "**eks-cicd-pipeline**" and select **pipeline** then **OK**.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*Oda0yhe97pFGS0KK3fSx3A.png)
+
+Create a Jon -&gt; Pipeline
+
+On the next screen, provide "**description**", move to the bottom, and click on "**Save**".
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*hISQdOBWcbmmQOil-9fUCg.png)
+
+Pipeline created
+
+Since we are going to run `terraform` commands in the pipeline, which will talk to our `AWS` environment, we need to provide/store `AccessKey` and `SecretAccessKey` somewhere in the vault so that the pipeline can use that.
+
+Jenkins provides a facility to store `secret` `credentials` in the vault.
+
+So, head on to the **Dashboard -&gt; Manage Jenkins -&gt; Credentials -&gt; System -&gt; Global credentials (unrestricted)**
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*CDjcLYFWD5-oHn1FDQJMkg.png)
+
+Create Secret text for AWS\_ACESS\_KEY\_ID
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*xsRdOW5ogwepGdQnDXthBw.png)
+
+Create Secret text for AWS\_SECRET\_ACCESS\_KEY
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*vaqriyuj6Xf_nX5ZWK0Ngw.png)
+
+Access Keys created
+
+You need to install one plugin to see the stage view in the pipeline.
+
+Go to **Dashboard -&gt; Manage Jenkins -&gt; Plugins -&gt; Available plugins**
+
+and select **Pipeline: Stage View** and click on **Install**.
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*TDLR35Lkpiw6spDRZUh4Vg.png)
+
+Install Plugin — Pipeline: Stage View
+
+Finally, let's start configuring our pipeline. Go to your `Dashboard` and click on `Configure` →
+
+![None](https://miro.medium.com/v2/resize:fit:700/1*FPtHRKzBkUsX4GfsgUNJ9A.png)
