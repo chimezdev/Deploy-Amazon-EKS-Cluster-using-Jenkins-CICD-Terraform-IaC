@@ -1,6 +1,6 @@
 # DEPLOYMENT OF WEB APPLICATION TO AMAZON EKS THROUGH JENKINS CICD AND TERRAFROM AS IaC
 
-Original owner @thanosdrome
+Original owner @thanosdrome [GitHub](https://github.com/thanosdrome/Deploying-EKS-Clusters-and-Applications-with-CI-CD-using-Jenkins-and-Terraform)
 
 ![Architecture](assets/architecture.png)
 
